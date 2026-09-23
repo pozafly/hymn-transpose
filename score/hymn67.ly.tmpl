@@ -1,0 +1,191 @@
+\version "2.24.3"
+\language "nederlands"
+
+#(set-global-staff-size 19)
+
+\paper {
+  paper-width = 210\mm
+  paper-height = 297\mm
+  top-margin = 12\mm
+  bottom-margin = 12\mm
+  left-margin = 14\mm
+  right-margin = 14\mm
+  indent = 0
+  short-indent = 0
+  ragged-last-bottom = ##t
+  system-system-spacing.basic-distance = #17
+  markup-system-spacing.basic-distance = #12
+  print-page-number = ##f
+  #(define fonts
+     (set-global-fonts
+       #:roman "Noto Serif CJK KR"
+       #:sans "Noto Sans CJK KR"
+       #:factor (/ staff-height pt 20)))
+}
+
+global = {
+  \key ges \major
+  \time 3/4
+  \partial 4
+  \override Staff.TimeSignature.X-offset = #1.4
+  \override Score.BarNumber.break-visibility = ##(#f #f #f)
+}
+
+ch = #(define-music-function (txt) (string?)
+  #{ ^\markup \bold \sans \fontsize #1 #txt #})
+
+upperRaw = {
+  \global
+  \tempo \markup \sans \fontsize #-1 "보통으로"
+  %% ---------- LINE 1 ----------
+  <des' bes>4 |
+  <ges' des'>4\ch "@I@" <ges' des'>4 <as' des'>4 |
+  <bes' des'>2 <ges' des'>4 |
+  <ces'' ces'>4\ch "@IV@" <ces'' des'>4 <bes' des'>4 |
+  <as' des'>2\ch "@V@" \bar "|" \break
+  %% ---------- LINE 2 ----------
+  des'8[ ces'8] |
+  <ges' bes>4\ch "@I@" <ges' des'>4 <as' des'>4 |
+  <bes' des'>2 <ces'' es'>4 |
+  <des'' des'>8.[ <ces'' es'>16] <bes' des'>4 <as' ces'>4 |
+  <ges' bes>2 \bar "|" \break
+  %% ---------- LINE 3 ----------
+  des'4 |
+  des'4\ch "@V@" des'4 <es' c'!>4 |
+  <f' ces'>4 <f' ces'>4 <ges' bes>4 |
+  <as' as>4 <as' des'>4 <bes' des'>4 |
+  <ces'' des'>2\ch "@V7@" \bar "|" \break
+  %% ---------- LINE 4 ----------
+  des'8[ ces'8] |
+  <ges' bes>4\ch "@I@" <ges' des'>4 <as' des'>4 |
+  <bes' des'>4 <bes' des'>4 <ces'' es'>4 |
+  <des'' des'>8.\ch "@V7@" [ <ces'' es'>16] <bes' des'>4 <as' ces'>4 |
+  \set Timing.measureLength = #(ly:make-moment 1/2)
+  <ges' bes>2\ch "@I@" \bar "||"
+  \set Timing.measureLength = #(ly:make-moment 3/4)
+  <ges' ces'>2.\ch "@IV@" |
+  <ges' bes>2.\ch "@I@" \bar "|."
+}
+
+lowerRaw = {
+  \global
+  \clef bass
+  %% ---------- LINE 1 ----------
+  <ges ges,>4 |
+  <bes ges,>4 <ges bes,>4 <f des>4 |
+  ges2 <ges bes,>4 |
+  <ges es>4 <as f>4 ges4 |
+  <f des>2 \bar "|"
+  %% ---------- LINE 2 ----------
+  <f des>4 |
+  <ges ges,>4 <ges bes,>4 <f des>4 |
+  ges2 <ges es>4 |
+  <ges bes,>8.[ ces16] <ges des>4 <f des>4 |
+  <ges ges,>2 \bar "|"
+  %% ---------- LINE 3 ----------
+  <f des>4 |
+  <f des>4 <f des>4 <ges des>4 |
+  <as des>4 <as des>4 <ges des>4 |
+  <f des>4 <f des>4 <ges des>4 |
+  <f des>2 \bar "|"
+  %% ---------- LINE 4 ----------
+  <f des>4 |
+  <ges ges,>4 <ges bes,>4 <f des>4 |
+  ges4 ges4 <ges es>4 |
+  <ges bes,>8.[ ces16] <ges des>4 <f des>4 |
+  \set Timing.measureLength = #(ly:make-moment 1/2)
+  <ges ges,>2 \bar "||"
+  \set Timing.measureLength = #(ly:make-moment 3/4)
+  <es ces>2. |
+  <des ges,>2. \bar "|."
+}
+
+verseOne = \lyricmode {
+  영 광 의 왕 께 다 경 배 하 며
+  그 _ 크 신 사 랑 늘 찬 _ 송 하 라
+  예 부 터 영 원 히 참 방 패 시 니
+  그 _ 영 광 의 주 를 다 찬 _ 송 하 라
+}
+verseTwo = \lyricmode {
+  능 력 과 은 혜 다 찬 송 하 라
+  그 _ 옷 은 햇 빛 그 집 _ 은 궁 창
+  큰 우 레 소 리 로 주 노 하 시 고
+  폭 _ 풍 의 날 개 로 달 _ 려 가 신 다
+}
+verseThree = \lyricmode {
+  저 아 름 답 고 놀 라 운 일 이
+  가 _ 득 한 이 땅 다 주 _ 의 조 화
+  그 힘 찬 명 령 에 터 잡 히 나 니
+  저 _ 푸 른 바 다 는 옷 _ 자 락 이 라
+}
+verseFour = \lyricmode {
+  질 그 릇 같 이 연 약 한 인 생
+  주 _ 의 지 하 여 늘 강 _ 건 하 리
+  온 백 성 지 으 신 만 왕 이 시 니
+  그 _ 자 비 영 원 히 변 _ 함 없 어 라
+  아 멘
+}
+
+upper = \transpose ges @KEY@ \upperRaw
+lower = \transpose ges @KEY@ \lowerRaw
+
+\header {
+  tagline = ##f
+}
+
+\markup \fill-line {
+  \column {
+    \line { \fontsize #9 \bold \with-color #(rgb-color 0.78 0.13 0.13) "67" }
+  }
+  \center-column {
+    \line { \fontsize #6 \bold "영광의 왕께 다 경배하며" }
+    \vspace #0.3
+    \line { \fontsize #-1 "주께서 지으신 모든 것들이 주께 감사하며" }
+    \line { \fontsize #-1 "(시 145:10)" }
+  }
+  \column {
+    \line { \fontsize #2 \bold "(통 31)" }
+  }
+}
+\markup \vspace #0.4
+\markup \fill-line {
+  \column {
+    \line { \fontsize #-1 \bold "W. Kethe, 1561" }
+    \line { \fontsize #-1 \bold "Adapt. by R. Grant, 1833" }
+  }
+  \column {
+    \line { \fontsize #-1 \bold "창조주" }
+    \line { \fontsize #-1 \bold "LYONS: 10.10.11.11." }
+    \line { \fontsize #-1 \bold "Attr. to J. M. Haydn; Arr. by W. Gardiner, 1815" }
+  }
+}
+\markup \vspace #0.8
+
+\score {
+  <<
+    \new Staff = "up" {
+      \new Voice = "mel" { \upper }
+    }
+    \new Lyrics \with { \override VerticalAxisGroup.staff-affinity = #UP }
+      \lyricsto "mel" { \set stanza = \markup \bold "1." \verseOne }
+    \new Lyrics \lyricsto "mel" { \set stanza = \markup \bold "2." \verseTwo }
+    \new Lyrics \lyricsto "mel" { \set stanza = \markup \bold "3." \verseThree }
+    \new Lyrics \lyricsto "mel" { \set stanza = \markup \bold "4." \verseFour }
+    \new Staff = "down" { \lower }
+  >>
+  \layout {
+    \context {
+      \Staff
+      \override VerticalAxisGroup.staff-staff-spacing.basic-distance = #14
+    }
+    \context {
+      \Lyrics
+      \override LyricText.font-size = #0.5
+      \override VerticalAxisGroup.nonstaff-nonstaff-spacing.basic-distance = #2.6
+    }
+    \context {
+      \Score
+      \override SpacingSpanner.common-shortest-duration = #(ly:make-moment 1/8)
+    }
+  }
+}
