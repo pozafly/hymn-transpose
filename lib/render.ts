@@ -1,4 +1,3 @@
-import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
   access,
@@ -8,14 +7,16 @@ import {
   readdir,
   rename,
   rm,
+  stat,
   writeFile,
 } from "node:fs/promises";
 import path from "node:path";
-import { promisify } from "node:util";
+import { command as execute } from "./command.ts";
 import { getHymns, scoreDirectory } from "./catalog.ts";
 import { fillTemplate, isKey, type KeyId } from "./keys.ts";
+import { savedScore, scorePath, type SavedScore } from "./store.ts";
+import { parseMusicXML, musicToLily } from "./musicxml.ts";
 
-const execute = promisify(execFile);
 export const cacheDirectory = () =>
   path.resolve(
     /* turbopackIgnore: true */ process.env.SCORE_CACHE_DIR || "dist/scores",
@@ -50,7 +51,6 @@ async function command(binary: string, args: string[], cwd?: string) {
   return execute(binary, args, {
     cwd,
     timeout: 60_000,
-    killSignal: "SIGKILL",
     maxBuffer: 8 * 1024 * 1024,
     env: { ...process.env, LANG: "C.UTF-8" },
   });
@@ -89,13 +89,16 @@ async function cached(directory: string): Promise<Manifest | null> {
     ) as Manifest;
     if (
       !Array.isArray(manifest.pages) ||
+      (!manifest.pages.length && !manifest.warning) ||
       !manifest.pages.every((p) => /^page-\d+\.png$/.test(p))
     )
       return null;
     await Promise.all(
-      ["score.pdf", ...manifest.pages].map((file) =>
-        access(path.join(directory, file)),
-      ),
+      ["score.pdf", ...manifest.pages].map(async (file) => {
+        const info = await stat(path.join(directory, file));
+        if (!info.isFile() || info.size === 0)
+          throw new Error("Incomplete cache file");
+      }),
     );
     return manifest;
   } catch {
@@ -103,33 +106,94 @@ async function cached(directory: string): Promise<Manifest | null> {
   }
 }
 
+const settings = () =>
+  `renderer-v1:png-150:${process.env.SCORE_RENDER_VERSION || "1"}`;
+export type PreparedRender = {
+  id: string;
+  key: KeyId;
+  source: string;
+  version: string;
+};
+function prepare(id: string, key: KeyId, source: string): PreparedRender {
+  return {
+    id,
+    key,
+    source,
+    version: createHash("sha256")
+      .update(`${settings()}:${source}`)
+      .digest("hex")
+      .slice(0, 16),
+  };
+}
+export async function prepareSavedRender(score: SavedScore) {
+  const xml = await readFile(scorePath(score.id, "score.musicxml"), "utf8");
+  const parsed = parseMusicXML(xml, score.modeOverride);
+  // Hash file contents, not mtime: deployments and restored files can retain timestamps.
+  const identity = createHash("sha256")
+    .update(JSON.stringify([settings(), score.title, score.modeOverride, xml]))
+    .digest("hex");
+  return {
+    identity,
+    sourceKey: parsed.sourceKey,
+    mode: parsed.mode,
+    forKey: (key: KeyId) =>
+      prepare(score.id, key, musicToLily(parsed, score.title, key)),
+  };
+}
+export async function cachedResult(
+  input: PreparedRender,
+): Promise<RenderResult | null> {
+  const manifest = await cached(
+    path.join(cacheDirectory(), input.id, input.key, input.version),
+  );
+  return manifest ? result(input.id, input.key, input.version, manifest) : null;
+}
+
+export async function prepareRender(
+  hymnId: string,
+  key: KeyId,
+): Promise<PreparedRender> {
+  if (!isKey(key)) throw new RenderError("지원하지 않는 조입니다.", 400);
+  const hymn = (await getHymns()).find((item) => item.id === hymnId);
+  if (!hymn) throw new RenderError("곡을 찾을 수 없습니다.", 404);
+  let source: string;
+  const saved = savedScore(hymnId);
+  if (saved && !hymn.template) {
+    const xml = await readFile(scorePath(hymnId, "score.musicxml"), "utf8");
+    source = musicToLily(
+      parseMusicXML(xml, saved.modeOverride),
+      hymn.title,
+      key,
+    );
+  } else {
+    const template = await readFile(
+      path.join(scoreDirectory, hymn.template),
+      "utf8",
+    );
+    source = fillTemplate(template, key);
+  }
+  return prepare(hymn.id, key, source);
+}
+
 export async function render(
   hymnId: string,
   key: KeyId,
 ): Promise<RenderResult> {
-  if (!isKey(key)) throw new RenderError("지원하지 않는 조입니다.", 400);
-  const hymn = (await getHymns()).find((item) => item.id === hymnId);
-  if (!hymn) throw new RenderError("곡을 찾을 수 없습니다.", 404);
-  const template = await readFile(
-    path.join(scoreDirectory, hymn.template),
-    "utf8",
-  );
-  const source = fillTemplate(template, key);
-  // Bump SCORE_RENDER_VERSION after changing LilyPond, Poppler, or fonts.
-  const version = createHash("sha256")
-    .update(
-      `renderer-v1:png-150:${process.env.SCORE_RENDER_VERSION || "1"}:${source}`,
-    )
-    .digest("hex")
-    .slice(0, 16);
+  return renderPrepared(await prepareRender(hymnId, key));
+}
+
+export async function renderPrepared(
+  input: PreparedRender,
+): Promise<RenderResult> {
+  const { id: hymnId, key, source, version } = input;
   const directory = path.join(
     /* turbopackIgnore: true */ cacheDirectory(),
-    hymn.id,
+    hymnId,
     key,
     version,
   );
   const existing = await cached(directory);
-  if (existing) return result(hymn.id, key, version, existing);
+  if (existing) return result(hymnId, key, version, existing);
   const active = state.pending.get(directory);
   if (active) return active;
   if (state.pending.size >= 24)
@@ -142,7 +206,7 @@ export async function render(
     .catch(() => {})
     .then(async () => {
       const previous = await cached(directory);
-      if (previous) return result(hymn.id, key, version, previous);
+      if (previous) return result(hymnId, key, version, previous);
       await mkdir(path.dirname(directory), { recursive: true });
       const temporary = await mkdtemp(
         path.join(path.dirname(directory), ".render-"),
@@ -179,7 +243,7 @@ export async function render(
         // A manifest becomes visible only after every output has completed.
         await rm(directory, { recursive: true, force: true });
         await rename(temporary, directory);
-        return result(hymn.id, key, version, manifest);
+        return result(hymnId, key, version, manifest);
       } catch (error) {
         if (error instanceof RenderError) throw error;
         console.error("Score rendering failed", error);

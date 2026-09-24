@@ -1,0 +1,21 @@
+FROM node:24-trixie-slim
+RUN corepack enable && apt-get update && apt-get install -y --no-install-recommends \
+    lilypond poppler-utils fonts-noto-cjk fontconfig curl ca-certificates \
+    libasound2t64 libbsd0 libmd0 libx11-6 libxau6 libxcb1 libxdmcp6 libxext6 libxi6 libxrender1 libxtst6 zlib1g \
+    && rm -rf /var/lib/apt/lists/*
+ARG AUDIVERIS_VERSION=5.11.0
+RUN curl --fail --location --retry 3 --max-time 180 -o /tmp/audiveris.deb https://github.com/Audiveris/audiveris/releases/download/${AUDIVERIS_VERSION}/Audiveris-${AUDIVERIS_VERSION}-ubuntu24.04-x86_64.deb \
+    && dpkg-deb -x /tmp/audiveris.deb / && rm /tmp/audiveris.deb
+ENV TESSDATA_PREFIX=/opt/tessdata
+RUN apt-get update && apt-get install -y --no-install-recommends libgtk-3-0t64 && rm -rf /var/lib/apt/lists/*
+RUN mkdir -p /opt/tessdata && for lang in eng kor chi_tra; do curl --fail --location --retry 3 --max-time 120 -o /opt/tessdata/$lang.traineddata https://raw.githubusercontent.com/tesseract-ocr/tessdata/4.1.0/$lang.traineddata; done
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile --prod
+COPY lib ./lib
+COPY score ./score
+COPY scripts ./scripts
+RUN mkdir -p /app/data /app/dist/scores && chown -R node:node /app/data /app/dist
+ENV APP_DATA_DIR=/app/data SCORE_CACHE_DIR=/app/dist/scores
+USER node
+CMD ["node", "lib/worker.ts"]

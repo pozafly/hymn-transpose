@@ -1,4 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
+try {
+  process.loadEnvFile(".env");
+} catch {}
 export default defineConfig({
   testDir: "tests/e2e",
   timeout: 120_000,
@@ -6,6 +9,9 @@ export default defineConfig({
   workers: 1,
   use: {
     baseURL: process.env.TEST_BASE_URL || "http://127.0.0.1:3000",
+    extraHTTPHeaders: {
+      Origin: process.env.TEST_BASE_URL || "http://127.0.0.1:3000",
+    },
     trace: "retain-on-failure",
   },
   projects: [

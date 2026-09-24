@@ -1,7 +1,7 @@
 # hymn-transpose
 
 찬송가 악보를 원하는 조(key)로 조판해 PDF/PNG로 내려주는 서비스.
-Next.js + TypeScript 앱. 악보 엔진은 LilyPond 2.24.x(CLI)를 Node.js `execFile`로 실행한다.
+Next.js + TypeScript 앱. 악보 엔진은 LilyPond 2.24.x(CLI)를 Node.js `spawn`으로 셸 없이 실행한다.
 배경과 전체 맥락은 docs/handoff.md 참고.
 
 ## 절대 규칙
@@ -17,6 +17,8 @@ Next.js + TypeScript 앱. 악보 엔진은 LilyPond 2.24.x(CLI)를 Node.js `exec
 
 ## 명령어
 
+- 유닛 테스트와 E2E 테스트는 사용자가 명시적으로 요청할 때만 실행한다.
+
 pnpm run dev
 pnpm run score --list-keys
 pnpm run score --key f --png # dist/scores/67/f/<version>/score.pdf
@@ -30,8 +32,19 @@ pnpm run build
 - CJK 폰트가 없으면 한글 가사가 에러 없이 조용히 깨진다. 결과물을 눈으로 확인할 것.
 - PDF→PNG는 poppler-utils의 pdftoppm. 없으면 PNG만 실패하고 PDF는 정상.
 
+## 사진 분석 요구사항 (2026-09-24)
+
+- 사용자는 기본 찬송가 전체 등록과 개인 사진 업로드 → 악보 분석 → 여러 조 생성 → 저장·검색을 요청했다.
+- 상세 목표와 구현 현황의 구분은 `docs/photo-library-spec.md`를 따른다.
+- 같은 찬송가 번호라도 기본 악보와 업로드는 별도 ID로 저장하고 검색 결과에 각각 표시한다.
+- 보관함은 항상 찬송가 번호 오름차순으로 정렬한다. 같은 번호는 기본 악보 우선, 등록일·ID 순서로 고정하며 번호 없는 악보는 마지막에 둔다.
+- 새 사진 분석 기능에는 별도 OMR 엔진을 검토한다. 기존 `omr/`만으로 완전한 악보를 읽을 수 있다고 가정하지 않는다.
+- 현재 사진 분석은 Audiveris(Java)와 Node MusicXML 변환기를 사용한다. 불필요한 이미지 리사이즈는 가사 인식을 크게 저하시킬 수 있다.
+- 사용자는 로컬 추가 검증을 1~80장으로 제한했다. 전체 추가 생성은 서버에서 이어 한다.
+
 ## 하지 말 것
 
-- 이미지 → .ly 자동 변환 시도. omr/ 은 음표머리 위치만 검출한다.
-  조표·임시표·음길이·가사는 읽지 않는다.
+- 기존 `omr/`의 검출 결과만으로 이미지 → .ly 자동 변환이 가능하다고 가정하지 말 것.
+  `omr/`은 음표머리 위치만 검출하고 조표·임시표·음길이·가사는 읽지 않는다.
+  새로 요청된 사진 분석은 별도 엔진과 구조화된 데이터 검증으로 구현한다.
 - .ly 템플릿의 레이아웃 설정(\paper, \layout) 임의 변경. 원본 악보 재현이 목적이다.

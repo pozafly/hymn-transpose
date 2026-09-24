@@ -1,4 +1,11 @@
 import { test, expect } from "@playwright/test";
+test.beforeEach(async ({ request, context }) => {
+  const r = await request.post("/api/session", {
+    data: { password: process.env.APP_PASSWORD },
+  });
+  expect(r.status()).toBe(200);
+  await context.addCookies((await request.storageState()).cookies);
+});
 
 test("select key, preview, download, share and reload", async ({
   page,
@@ -47,7 +54,9 @@ test("select key, preview, download, share and reload", async ({
     page.getByText("검색 결과가 없어요.", { exact: false }),
   ).toBeVisible();
   await page.getByLabel("찬송가 검색").fill("67");
-  await expect(page.getByRole("link", { name: /67.*영광의 왕/ })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: /67.*영광의 왕.*기본 찬송가/ }),
+  ).toBeVisible();
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth > window.innerWidth,
   );

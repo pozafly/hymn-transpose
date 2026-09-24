@@ -1,0 +1,11 @@
+FROM node:24-trixie-slim
+RUN corepack enable && apt-get update && apt-get install -y --no-install-recommends musescore3 fonts-noto-cjk unzip \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile --prod
+COPY lib ./lib
+COPY scripts ./scripts
+ENV QT_QPA_PLATFORM=offscreen APP_DATA_DIR=/app/data LANG=C.UTF-8
+USER node
+CMD ["node", "scripts/import-hymns.ts", "/sources"]

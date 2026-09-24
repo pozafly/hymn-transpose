@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Library from "./library";
+import { signOut } from "@/app/login/actions";
 import type { Hymn } from "@/lib/catalog";
 import type { RenderResult } from "@/lib/render";
 import { KEYS, chord_labels, type KeyId } from "@/lib/keys";
@@ -116,79 +118,17 @@ export default function HymnViewer({
           <span className="brand-mark">
             <Icon name="music" />
           </span>
-          찬송의 조<span className="brand-divider" />
+          유나와 함께 찬송을<span className="brand-divider" />
           <span className="brand-description">
             마음을 모으는 찬송, 우리에게 맞는 조로
           </span>
         </Link>
-        <span className="header-note">찬송가 악보 라이브러리</span>
+        <form action={signOut}>
+          <button className="button">로그아웃</button>
+        </form>
       </header>
       <main className="workspace">
-        <aside className="library" aria-label="찬송가 목록">
-          <p className="eyebrow">HYMN LIBRARY</p>
-          <h1>
-            오늘의 찬송을
-            <br />
-            준비해 보세요.
-          </h1>
-          <p className="intro">
-            함께 부르기 편한 조를 고르고,
-            <br />
-            필요한 악보를 내려받으세요.
-          </p>
-          <label className="search-box">
-            <Icon name="search" />
-            <input
-              aria-label="찬송가 검색"
-              placeholder="장 번호 또는 제목 검색"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-            />
-            <kbd>⌕</kbd>
-          </label>
-          <div className="list-heading">
-            <h2>찬송가</h2>
-            <span>{hymns.length}곡</span>
-          </div>
-          <nav className="hymn-list" aria-label="곡 선택">
-            {visibleHymns.map((item) => (
-              <Link
-                key={item.id}
-                href={`/hymns/${item.id}`}
-                className={`hymn-card ${hymn.id === item.id ? "selected" : ""}`}
-                aria-current={hymn.id === item.id ? "page" : undefined}
-              >
-                <span className="hymn-number">
-                  {item.number}
-                  <small>장</small>
-                </span>
-                <span className="hymn-info">
-                  <strong>{item.title}</strong>
-                  <small>
-                    {item.category} ·{" "}
-                    {KEYS.find((key) => key.id === item.sourceKey)?.label}장조
-                  </small>
-                </span>
-                <span className="selection-dot" />
-              </Link>
-            ))}
-            {!visibleHymns.length && (
-              <p className="empty-search">
-                검색 결과가 없어요.
-                <br />
-                번호나 제목을 다시 확인해 주세요.
-              </p>
-            )}
-          </nav>
-          <div className="library-footnote">
-            <span className="little-rule" />
-            <p>
-              한 곡씩, 정성껏 준비하고 있어요.
-              <br />
-              찬송가는 차례로 추가됩니다.
-            </p>
-          </div>
-        </aside>
+        <Library hymns={hymns} currentId={hymn.id} />
         <section className="score-section" aria-label="악보">
           <div className="score-heading">
             <div>

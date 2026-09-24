@@ -1,0 +1,139 @@
+{
+  "checkedAt": "2026-09-24",
+  "musescore": {
+    "archives": [
+      {
+        "archive": "1-100.zip",
+        "files": 100,
+        "samples": [
+          {
+            "number": 67,
+            "version": "3.02",
+            "notes": 184,
+            "lyrics": 170,
+            "korean": true,
+            "harmony": 0,
+            "staves": 2
+          }
+        ],
+        "crcOkay": true
+      },
+      {
+        "archive": "101-200.zip",
+        "files": 100,
+        "samples": [
+          {
+            "number": 104,
+            "version": "3.02",
+            "notes": 236,
+            "lyrics": 149,
+            "korean": true,
+            "harmony": 0,
+            "staves": 2
+          }
+        ],
+        "crcOkay": true
+      },
+      {
+        "archive": "201-300.zip",
+        "files": 100,
+        "samples": [],
+        "crcOkay": true
+      },
+      {
+        "archive": "301-400.zip",
+        "files": 100,
+        "samples": [],
+        "crcOkay": true
+      },
+      {
+        "archive": "401-500.zip",
+        "files": 100,
+        "samples": [],
+        "crcOkay": true
+      },
+      {
+        "archive": "501-600.zip",
+        "files": 100,
+        "samples": [],
+        "crcOkay": true
+      },
+      {
+        "archive": "601-645.zip",
+        "files": 45,
+        "samples": [
+          {
+            "number": 645,
+            "version": "3.02",
+            "notes": 99,
+            "lyrics": 56,
+            "korean": true,
+            "harmony": 0,
+            "staves": 2
+          }
+        ],
+        "crcOkay": true
+      }
+    ],
+    "uniqueNumbers": 645,
+    "missing": [],
+    "errors": [],
+    "sources": [
+      {
+        "range": "601-645",
+        "page": "https://ccm4u.tistory.com/entry/%EC%83%88%EC%B0%AC%EC%86%A1%EA%B0%80-601%EC%9E%A5645%EC%9E%A5-%EB%AE%A4%EC%A6%88%EC%8A%A4%EC%BD%94%EC%96%B4-musescore-%ED%8C%8C%EC%9D%BC",
+        "status": 200,
+        "bytes": 968872,
+        "signature": "504b0304"
+      },
+      {
+        "range": "501-600",
+        "page": "https://ccm4u.tistory.com/entry/%EC%83%88%EC%B0%AC%EC%86%A1%EA%B0%80-501%EC%9E%A5600%EC%9E%A5-%EB%AE%A4%EC%A6%88%EC%8A%A4%EC%BD%94%EC%96%B4-musescore-%ED%8C%8C%EC%9D%BC",
+        "status": 200,
+        "bytes": 2712661,
+        "signature": "504b0304"
+      },
+      {
+        "range": "401-500",
+        "page": "https://ccm4u.tistory.com/entry/%EC%83%88%EC%B0%AC%EC%86%A1%EA%B0%80-401%EC%9E%A5500%EC%9E%A5-%EB%AE%A4%EC%A6%88%EC%8A%A4%EC%BD%94%EC%96%B4-musescore-%ED%8C%8C%EC%9D%BC",
+        "status": 200,
+        "bytes": 2747507,
+        "signature": "504b0304"
+      },
+      {
+        "range": "301-400",
+        "page": "https://ccm4u.tistory.com/entry/%EC%83%88%EC%B0%AC%EC%86%A1%EA%B0%80-301%EC%9E%A5400%EC%9E%A5-%EB%AE%A4%EC%A6%88%EC%8A%A4%EC%BD%94%EC%96%B4-musescore-%ED%8C%8C%EC%9D%BC",
+        "status": 200,
+        "bytes": 2739723,
+        "signature": "504b0304"
+      },
+      {
+        "range": "201-300",
+        "page": "https://ccm4u.tistory.com/entry/%EC%83%88%EC%B0%AC%EC%86%A1%EA%B0%80-201%EC%9E%A5300%EC%9E%A5-%EB%AE%A4%EC%A6%88%EC%8A%A4%EC%BD%94%EC%96%B4-musescore-%ED%8C%8C%EC%9D%BC",
+        "status": 200,
+        "bytes": 2706219,
+        "signature": "504b0304"
+      },
+      {
+        "range": "101-200",
+        "page": "https://ccm4u.tistory.com/entry/%EC%83%88%EC%B0%AC%EC%86%A1%EA%B0%80-101%EC%9E%A5200%EC%9E%A5-%EB%AE%A4%EC%A6%88%EC%8A%A4%EC%BD%94%EC%96%B4-musescore-%ED%8C%8C%EC%9D%BC",
+        "status": 200,
+        "bytes": 2609124,
+        "signature": "504b0304"
+      },
+      {
+        "range": "1-100",
+        "page": "https://ccm4u.tistory.com/entry/%EC%83%88%EC%B0%AC%EC%86%A1%EA%B0%80-1%EC%9E%A5100%EC%9E%A5-%EB%AE%A4%EC%A6%88%EC%8A%A4%EC%BD%94%EC%96%B4-musescore-%ED%8C%8C%EC%9D%BC",
+        "status": 200,
+        "bytes": 2519791,
+        "signature": "504b0304"
+      }
+    ]
+  },
+  "nwc": {
+    "page": "https://nmcat.tistory.com/93",
+    "status": 200,
+    "bytes": 802877,
+    "files": 645
+  }
+}

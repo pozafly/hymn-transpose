@@ -12,12 +12,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     lilypond poppler-utils fonts-noto-cjk fontconfig \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000 SCORE_CACHE_DIR=/app/dist/scores
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000 SCORE_CACHE_DIR=/app/dist/scores APP_DATA_DIR=/app/data
 COPY --from=build --chown=node:node /app/.next/standalone ./
 COPY --from=build --chown=node:node /app/.next/static ./.next/static
 COPY --from=build --chown=node:node /app/score ./score
 COPY --from=build --chown=node:node /app/lib ./lib
-RUN mkdir -p /app/dist/scores && chown -R node:node /app/dist
+RUN mkdir -p /app/dist/scores /app/data && chown -R node:node /app/dist /app/data
 USER node
 EXPOSE 3000
 CMD ["node", "server.js"]

@@ -7,22 +7,27 @@ Proxmox에서는 `pct enter 204`로 들어간다.
 
 ```sh
 cd /root/hymn-transpose
+# 최초 설치에만 실행한다. 기존 .env는 덮어쓰지 않는다.
+cp -n .env.example .env
+chmod 600 .env
+nano .env
+# APP_PASSWORD를 개인 비밀번호로 설정한다.
 docker compose build
-docker compose run --rm app node score/build.ts --all --png
-docker compose up -d app
-curl -f http://127.0.0.1:3000/api/hymns
+docker compose up -d app worker
+curl -f http://127.0.0.1:3000/login
 ```
 
-앱은 LXC의 localhost:3000에만 바인딩된다. 악보 캐시는 `scores` 볼륨에 보관된다.
+앱은 LXC의 localhost:3000에만 바인딩된다. DB·원본은 `library`, 악보 캐시는 `scores` 볼륨에 보관된다.
+기존 자료는 두 볼륨을 함께 이전한다. Git pull만으로 악보 자료가 생기지는 않는다.
+인증이 필요한 `/api/hymns`는 비로그인 상태에서 401을 반환하므로 상태 확인에는 `/login`을 사용한다.
 
 ## Cloudflare 연결
 
 1. Cloudflare에 등록된 도메인에서 Networking > Tunnels로 이동한다.
 2. `hymn-transpose`라는 전용 터널을 만들고 해당 터널의 토큰을 준비한다.
-3. 아래처럼 `.env`를 만들고 `TUNNEL_TOKEN=` 뒤에 토큰을 넣는다.
+3. 기존 `.env`에 `TUNNEL_TOKEN=` 뒤로 토큰을 넣고 `COOKIE_SECURE=true`를 설정한다.
 
 ```sh
-cp .env.example .env
 chmod 600 .env
 nano .env
 docker compose --profile cloudflare up -d
