@@ -1,3 +1,11 @@
 dist/
 __pycache__/
 *.pyc
+node_modules/
+.next/
+.git/
+.venv/
+.env*
+test-results/
+.tools/
+playwright-report/

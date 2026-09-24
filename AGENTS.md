@@ -1,7 +1,7 @@
 # hymn-transpose
 
 찬송가 악보를 원하는 조(key)로 조판해 PDF/PNG로 내려주는 서비스.
-악보 엔진은 LilyPond(CLI)를 subprocess로 실행한다.
+Next.js + TypeScript 앱. 악보 엔진은 LilyPond 2.24.x(CLI)를 Node.js `execFile`로 실행한다.
 배경과 전체 맥락은 docs/handoff.md 참고.
 
 ## 절대 규칙
@@ -17,8 +17,12 @@
 
 ## 명령어
 
-python score/build.py --list-keys
-python score/build.py --key f --png # dist/hymn67_f.pdf
+pnpm run dev
+pnpm run score --list-keys
+pnpm run score --key f --png # dist/scores/67/f/<version>/score.pdf
+pnpm run prerender # 전체 곡의 지원 조 사전 생성
+pnpm test
+pnpm run build
 
 ## 함정
 

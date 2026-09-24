@@ -2,3 +2,11 @@ dist/
 .venv/
 __pycache__/
 *.pyc
+node_modules/
+.next/
+*.tsbuildinfo
+.env*
+!.env.example
+test-results/
+.tools/
+playwright-report/

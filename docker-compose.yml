@@ -1,0 +1,19 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      SCORE_CACHE_DIR: /app/dist/scores
+      SCORE_RENDER_VERSION: "1"
+    volumes:
+      - scores:/app/dist/scores
+    init: true
+    mem_limit: 1g
+    cpus: 2
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  scores:
