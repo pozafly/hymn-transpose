@@ -492,7 +492,14 @@ export function musicToLily(
             }
             const notes =
               e.notes.length > 1 ? `<${e.notes.join(" ")}>` : e.notes[0] || "r";
-            const event = notes + e.duration + e.suffix;
+            // A single-note tie follows its duration (c4~); chord ties stay
+            // inside the brackets (<c~ e>4). c~4 creates an extra note.
+            const singleTie = e.notes.length === 1 && notes.endsWith("~");
+            const event =
+              (singleTie ? notes.slice(0, -1) : notes) +
+              e.duration +
+              (singleTie ? "~" : "") +
+              e.suffix;
             music += e.grace ? `\\grace { ${event} } ` : event + " ";
             if (!e.grace)
               for (const v of verses)
