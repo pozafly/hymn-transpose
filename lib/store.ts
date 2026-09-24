@@ -68,6 +68,9 @@ export function db() {
         throw error;
     }
   }
+  d.exec(
+    "CREATE INDEX IF NOT EXISTS job_identity ON jobs(score_id,kind,target,generation,status)",
+  );
   state.scoreDB = d;
   state.scoreDBPath = root;
   return d;

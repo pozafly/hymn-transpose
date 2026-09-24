@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
     "score": "tsx score/build.ts",
-    "prerender": "tsx score/build.ts --all --png",
+    "prerender": "node --env-file-if-exists=.env scripts/prerender-library.ts",
     "test:e2e": "playwright test",
     "worker": "node --env-file-if-exists=.env lib/worker.ts",
     "import:hymns": "node scripts/import-hymns.ts"

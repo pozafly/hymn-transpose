@@ -100,6 +100,46 @@ docker compose exec worker node scripts/verify-library.ts 80
 `git pull --ff-only` 후 `docker build -f Dockerfile.import -t hymn-import .`로 다시 빌드하고
 가져오기를 재실행한다. 서버에 전송한 수정본 ZIP을 다시 보낼 필요는 없다.
 
+## 서버에서 모든 조 미리 생성
+
+645곡을 가져온 뒤 기본 찬송가의 지원 조 13종을 모두 준비한다(총 8,385개 조합).
+G♭와 F♯는 표기가 달라 각각 저장한다. 장조·단조는 원곡대로 유지하며,
+기존에 생성된 현재 버전 PDF·PNG는 재사용한다. 개인 업로드는 대상에 포함하지 않는다.
+
+서버의 프로젝트 폴더에서 실행한다.
+
+```sh
+git pull --ff-only
+docker compose up -d --build worker
+docker compose exec worker node scripts/prerender-library.ts
+```
+
+67장 템플릿의 조별 파일을 먼저 준비한 뒤 나머지 곡은 기존 worker의 영속 작업 큐에 넣는다.
+앱의 조 목록에도 요청한 조들이 반영된다. `작업 등록 종료`와 요약 출력 후 명령이 끝나면
+SSH를 닫아도 생성이 계속되며, worker 재시작 시 대기 작업을 이어 처리한다.
+등록 도중 중단됐다면 같은 명령을 다시 실행한다. 현재 파일은 재사용하고 중복 작업은 넣지 않는다.
+worker는 하나만 실행한다.
+
+진행 상황은 다음 명령으로 확인한다. 이 명령은 생성 요청을 추가하지 않는다.
+
+```sh
+docker compose exec worker node scripts/prerender-library.ts --status
+```
+
+`completed: 8385`, `pending: 0`, `failed: 0`, `notQueued: 0`이면 모두 준비됐다.
+`completed`는 실제 캐시 파일과 앱에 등록된 결과 버전까지 일치하는 개수다.
+`pending`은 현재 세대의 대기·실행 작업, `notQueued`는 완성 파일과 진행 작업이 모두 없는 조합이다.
+`workerOnline: false`이면 worker 상태를 확인한다. 실패 항목은 요약의 `errors`에 표시한다.
+실패 원인을 해결한 뒤 아래 명령으로 다시 요청한다. 정상 결과는 계속 재사용한다.
+
+```sh
+docker compose exec worker node scripts/prerender-library.ts --retry-failed
+```
+
+로컬 CLI는 `pnpm run prerender`이며 같은 작업 큐와 저장 경로를 사용한다.
+운영 확인이 필요하면 `--hymn 1 --key f`처럼 범위를 제한할 수 있다.
+로컬에서 전곡 렌더는 실행하지 않는다. 유닛·E2E 테스트와 별개인 실제 악보 생성 명령이다.
+
 ## 개발과 검증
 
 Node.js 24, pnpm 12.5.1, LilyPond 2.24.3 이상 2.24.x, Poppler, Fontconfig,
