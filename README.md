@@ -93,6 +93,13 @@ docker compose exec worker node scripts/verify-library.ts 80
 변환기는 MuseScore 3.2의 강제 열기 옵션을 사용하므로 호환성 경고와 변환 실패를 확인한다.
 원본과 변환 후 음표 수를 대조하지만 음악 내용 전체를 검수한 것은 아니다.
 
+검수한 비밀번호 없는 ZIP은 Node.js에서 직접 풀어 한글 파일명을 보존한다.
+기존 암호화 ZIP은 `unzip`으로 읽는다. 등록 전에 번호·제목을 읽고 번호순으로 처리하며,
+번호 인식 실패·중복·대상 0곡은 오류로 중단한다. 곡별 변환 실패도 종료 코드 1로 알린다.
+이전 코드에서 `{"files":645,"success":0,"failed":0}`이 나왔다면 가져오기 도구를 업데이트해야 한다.
+`git pull --ff-only` 후 `docker build -f Dockerfile.import -t hymn-import .`로 다시 빌드하고
+가져오기를 재실행한다. 서버에 전송한 수정본 ZIP을 다시 보낼 필요는 없다.
+
 ## 개발과 검증
 
 Node.js 24, pnpm 12.5.1, LilyPond 2.24.3 이상 2.24.x, Poppler, Fontconfig,

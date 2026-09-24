@@ -1,68 +1,39 @@
-import { readFile, writeFile, readdir, mkdir, mkdtemp } from "node:fs/promises";
+import { readFile, writeFile, mkdir, mkdtemp } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import { parseMusicXML, unpackMusicXML, musicToLily } from "../lib/musicxml.ts";
-import {
-  insertScore,
-  savedScore,
-  scorePath,
-  updateScore,
-} from "../lib/store.ts";
+import { insertScore, savedScore, scorePath } from "../lib/store.ts";
 import { unzipSync, strFromU8 } from "fflate";
 import { command as run } from "../lib/command.ts";
+import { readHymnSources } from "../lib/hymn-sources.ts";
 const root = process.argv[2];
 if (!root) throw new Error("원본 ZIP 디렉터리를 지정해 주세요.");
 const temp = await mkdtemp(path.join(os.tmpdir(), "hymn-import-"));
-const archives = (await readdir(root)).filter((n) => /^\d+-\d+\.zip$/.test(n));
-for (const a of archives) {
-  try {
-    await run(
-      "unzip",
-      ["-q", "-o", "-P", "ccm4u", path.join(root, a), "-d", temp],
-      {
-        timeout: 60_000,
-        maxBuffer: 2 * 1024 * 1024,
-        env: { ...process.env, LANG: "C.UTF-8", LC_ALL: "C.UTF-8" },
-      },
-    );
-  } catch (e) {
-    if (
-      (e as { code?: number }).code !== 1 ||
-      !/mismatching "local" filename/.test(
-        (e as { stderr?: string }).stderr || "",
-      )
-    )
-      throw e;
-  }
-}
-async function walk(dir: string): Promise<string[]> {
-  const list: string[] = [];
-  for (const e of await readdir(dir, { withFileTypes: true })) {
-    const f = path.join(dir, e.name);
-    if (e.isDirectory()) list.push(...(await walk(f)));
-    else if (f.endsWith(".mscz") && !f.includes("__MACOSX")) list.push(f);
-  }
-  return list;
-}
-const files = await walk(temp);
+const sources = await readHymnSources(root, temp);
 const report: {
   id: string;
   ok: boolean;
   error?: string;
   warnings?: string[];
 }[] = [];
-const selected = process.env.IMPORT_ONLY?.split(",");
-for (const f of files) {
-  const match = path
-    .basename(f)
-    .replace(/#U([0-9a-f]{4})/gi, (_, hex) =>
-      String.fromCharCode(parseInt(hex, 16)),
-    )
-    .normalize("NFC")
-    .match(/(\d{1,3})\s*장[ ._-]*(.*)\.mscz$/);
-  if (!match) continue;
-  const id = String(Number(match[1]));
-  if (selected && !selected.includes(id)) continue;
+const selected = process.env.IMPORT_ONLY?.split(",").map((id) => id.trim());
+if (
+  selected?.some(
+    (id) => !/^\d{1,3}$/.test(id) || Number(id) < 1 || Number(id) > 645,
+  )
+)
+  throw new Error(
+    "IMPORT_ONLY에는 1~645 사이 장 번호를 쉼표로 구분해 지정해 주세요.",
+  );
+const selectedIds =
+  selected && new Set(selected.map((id) => String(Number(id))));
+const targets = sources.filter(({ id }) => !selectedIds || selectedIds.has(id));
+if (!targets.length)
+  throw new Error(
+    "등록 대상이 0곡입니다. 원본 폴더와 IMPORT_ONLY 설정을 확인해 주세요.",
+  );
+console.log(`원본 ${sources.length}곡 인식, 등록 대상 ${targets.length}곡`);
+for (const { id, title, file: f } of targets) {
   if (id === "67" || savedScore(id)) {
     report.push({ id, ok: true });
     continue;
@@ -92,7 +63,6 @@ for (const f of files) {
       throw new Error(
         `음표 수 불일치: 원본 ${sourceNotes}, 변환 ${parsed.noteCount}`,
       );
-    const title = match[2].replaceAll("_", " ").trim() || `${id}장`;
     musicToLily(parsed, title, parsed.sourceKey);
     await mkdir(scorePath(id), { recursive: true });
     await writeFile(scorePath(id, "score.musicxml"), xml);
@@ -134,8 +104,9 @@ await writeFile(
 );
 console.log(
   JSON.stringify({
-    files: files.length,
+    files: sources.length,
     success: report.filter((r) => r.ok).length,
     failed: report.filter((r) => !r.ok).length,
   }),
 );
+if (report.some((row) => !row.ok)) process.exitCode = 1;
